@@ -1,0 +1,5 @@
+simulator
+*.mod
+*.o
+results.txt
+*.png
