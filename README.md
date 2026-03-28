@@ -26,3 +26,11 @@ Timestep sensitivity (Convergence) and Damping effect analysis.
 ### 4. Strong Scaling Analysis
 Performance scaling from 1 to 12 threads using OpenMP, demonstrating the impact of Amdahl's Law on the $O(N)$ optimized engine.
 ![Scaling](results/plots/scaling_plot.png)
+
+
+## Repository Branch Structure
+To clearly separate the baseline requirements from the bonus optimization tasks, this repository is organized into three branches:
+
+* **`main`**: Contains the final, fully integrated codebase (combining all optimizations and studies).
+* **`neighbor-search`**: Isolates the commits where the $O(N)$ Cell-Linked List spatial partitioning was implemented (Section 18).
+* **`scientific-study`**: Isolates the commits containing the timestep sensitivity and damping coefficient scripts (Section 19).
