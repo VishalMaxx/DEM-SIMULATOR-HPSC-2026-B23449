@@ -22,10 +22,16 @@ program particle_simulator
 
     start_t = omp_get_wtime()
 
+    ! --- Simulation Loop ---
     do step = 1, total_steps
-        call apply_gravity()
-        call compute_wall_contacts()
+        ! 1. Build the grid (Neighbor Search optimization)
+        call build_neighbor_list()
+        
+        ! 2. Compute forces (Only local checks)
         call compute_particle_contacts()
+        call compute_wall_contacts()
+        
+        ! 3. Update positions
         call update_particles()
     end do
 
