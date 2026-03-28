@@ -22,3 +22,7 @@ Demonstration of the Spring-Dashpot damping effect.
 Timestep sensitivity (Convergence) and Damping effect analysis.
 ![Sensitivity](results/plots/sensitivity_plot.png)
 ![Damping](results/plots/damping_plot.png)
+
+### 4. Strong Scaling Analysis
+Performance scaling from 1 to 12 threads using OpenMP, demonstrating the impact of Amdahl's Law on the $O(N)$ optimized engine.
+![Scaling](results/plots/scaling_plot.png)
