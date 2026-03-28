@@ -20,16 +20,18 @@ module physics_data
     ! --- Neighbour Search Arrays (Section 18) ---
     real(8) :: cell_size
     integer :: n_cells_x, n_cells_y, n_cells_z
-    integer, allocatable :: head(:)      ! Head of the linked list for each cell
-    integer, allocatable :: next_p(:)    ! Pointer to the next particle in the list
+    integer, allocatable :: head(:)      
+    integer, allocatable :: next_p(:)    
 
 contains
 
     subroutine allocate_particles()
+        if (allocated(x)) then
+            deallocate(x, y, z, vx, vy, vz, fx, fy, fz, mass, radius, head, next_p)
+        end if
         allocate(x(N), y(N), z(N), vx(N), vy(N), vz(N))
         allocate(fx(N), fy(N), fz(N), mass(N), radius(N))
         
-        ! Cell size must be at least the particle diameter (2*R)
         cell_size = 1.1d0 * (2.0d0 * 0.5d0) 
         n_cells_x = ceiling(Lx / cell_size)
         n_cells_y = ceiling(Ly / cell_size)
@@ -39,7 +41,17 @@ contains
         allocate(next_p(N))
         
         vx = 0.0; vy = 0.0; vz = 0.0; mass = 1.0; radius = 0.5
+        fx = 0.0; fy = 0.0; fz = 0.0
     end subroutine allocate_particles
+
+    subroutine apply_gravity()
+        integer :: i
+        do i = 1, N
+            fx(i) = 0.0
+            fy(i) = 0.0
+            fz(i) = mass(i) * g
+        end do
+    end subroutine apply_gravity
 
     subroutine build_neighbor_list()
         integer :: i, cx, cy, cz, cell_idx
@@ -62,8 +74,6 @@ contains
         !$omp parallel do private(j, cx, cy, cz, nx_c, ny_c, nz_c, neigh_idx, &
         !$omp& dx_c, dy_c, dz_c, dx, dy, dz, dist, overlap, nx, ny, nz, v_rel_n, force_n)
         do i = 1, N
-            fx(i) = 0.0; fy(i) = 0.0; fz(i) = mass(i) * g ! Reset + Gravity here
-
             cx = int(x(i) / cell_size) + 1
             cy = int(y(i) / cell_size) + 1
             cz = int(z(i) / cell_size) + 1
@@ -110,7 +120,6 @@ contains
         !$omp end parallel do
     end subroutine compute_particle_contacts
 
-    ! (Keep compute_wall_contacts and update_particles as they were)
     subroutine compute_wall_contacts()
         integer :: i
         real(8) :: delta, force_n
@@ -134,4 +143,5 @@ contains
             z(i) = z(i) + vz(i) * dt
         end do
     end subroutine update_particles
+
 end module physics_data

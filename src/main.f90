@@ -1,42 +1,40 @@
 program particle_simulator
     use physics_data
-    use omp_lib
     implicit none
-    integer :: i, step, total_steps = 200
-    real(8) :: start_t, end_t, rand_val
-    integer :: threads
+    integer :: step, i
+    real(8) :: t, final_t = 3.0d0
+    real(8), dimension(4) :: gammas = (/10.0d0, 50.0d0, 100.0d0, 250.0d0/)
 
-    ! Request the current number of threads from the environment
-    threads = omp_get_max_threads()
-    N = 5000 
-    
-    print *, "Performance Test: N =", N, "| Threads =", threads
-    call allocate_particles()
+    print *, "Starting Damping Effect Study (Section 19.1)..."
+    N = 1 
+    dt = 0.001d0
 
-    ! Random initialization for a dense system
-    do i = 1, N
-        call random_number(rand_val); x(i) = rand_val * (Lx - 1.0) + 0.5
-        call random_number(rand_val); y(i) = rand_val * (Ly - 1.0) + 0.5
-        call random_number(rand_val); z(i) = rand_val * (Lz - 1.0) + 0.5
+    open(unit=30, file="damping_results.txt", status="replace")
+    write(30, '(A10, A10, A15, A15)') "# Gamma", "Time", "Height_Z", "Velocity_Z"
+
+    do i = 1, 4
+        gamma_n = gammas(i)
+        call allocate_particles()
+        
+        ! Initial State: High drop to see multiple bounces
+        z(1) = 10.0d0
+        vz(1) = 0.0d0
+        
+        do step = 1, int(final_t / dt)
+            t = step * dt
+            call apply_gravity()
+            call compute_wall_contacts()
+            call update_particles()
+            
+            ! Record every 10 steps to keep the file size reasonable
+            if (mod(step, 10) == 0) then
+                write(30, '(F10.1, F10.4, F15.6, F15.6)') gamma_n, t, z(1), vz(1)
+            end if
+        end do
+        
+        print '(A,F6.1,A)', "Finished simulation for Gamma = ", gamma_n, "..."
     end do
 
-    start_t = omp_get_wtime()
-
-    ! --- Simulation Loop ---
-    do step = 1, total_steps
-        ! 1. Build the grid (Neighbor Search optimization)
-        call build_neighbor_list()
-        
-        ! 2. Compute forces (Only local checks)
-        call compute_particle_contacts()
-        call compute_wall_contacts()
-        
-        ! 3. Update positions
-        call update_particles()
-    end do
-
-    end_t = omp_get_wtime()
-    print '(A,F10.4,A)', "Execution Time: ", end_t - start_t, " seconds"
-    
-    deallocate(x, y, z, vx, vy, vz, fx, fy, fz, mass, radius)
+    close(30)
+    print *, "Damping data saved to damping_results.txt"
 end program particle_simulator
